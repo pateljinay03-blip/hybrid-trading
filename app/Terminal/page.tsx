@@ -23,6 +23,11 @@ const [liquidityRead, setLiquidityRead] = useState("Neutral");
   const [chartSymbol, setChartSymbol] = useState("BINANCE:BTCUSDT");
   const [selectedMarket, setSelectedMarket] = useState("BTC/USD");
   const [selectedPrice, setSelectedPrice] = useState("Loading..."); 
+  const [entryZone, setEntryZone] = useState("-");
+const [stopLoss, setStopLoss] = useState("-");
+const [takeProfit, setTakeProfit] = useState("-");
+const [riskReward, setRiskReward] = useState("-");
+const [tradeReason, setTradeReason] = useState("");
   const [orderflowScore, setorderFlowScore] = useState(62);
 const [liquidityread, setLiquidityread] = useState("Above Highs");
 const [smartMoneyRead, setSmartMoneyRead] = useState("Accumulation");
@@ -40,6 +45,11 @@ let Liquidity = "Neutral";
   if (market === "BTC/USD") {
     if (price > 78000) {
       newSignal = "LONG";
+      setEntryZone("77,800 - 78,000");
+setStopLoss("76,800");
+setTakeProfit("80,500");
+setRiskReward("1 : 3.1");
+setTradeReason("Liquidity sweep + institutional accumulation");
       newConfidence = 84;
       setOrderFlowScore(78);
 setLiquidityRead("Above Highs");
@@ -53,6 +63,11 @@ setSmartMoneyRead("Accumulation");
       liquidity = "Liquidity {liquidityRead}";
     } else if (price < 76000) {
       newSignal = "SHORT";
+      setEntryZone("75,900 - 76,100");
+setStopLoss("76,800");
+setTakeProfit("73,500");
+setRiskReward("1 : 2.8");
+setTradeReason("Distribution + bearish order flow");
       newConfidence = 76;
       setOrderFlowScore(28);
 setLiquidityRead("Below Lows");
@@ -64,11 +79,27 @@ setSmartMoneyRead("Distribution");
       ];
       flow = 38;
       liquidity = "Liquidity below lows";
+      
     }
   }
+else {
+  setEntryZone("-");
+  setStopLoss("-");
+  setTakeProfit("-");
+  setRiskReward("-");
+  setTradeReason("No institutional edge detected");
+  
 
+  newSignal = "WAIT";
+  newConfidence = 55;
+}
   if (market === "ETH/USD") {
     if (price > 2200) {
+        setEntryZone("2,180 - 2,200");
+setStopLoss("2,130");
+setTakeProfit("2,350");
+setRiskReward("1 : 3.0");
+setTradeReason("Bullish momentum + institutional accumulation");
       newSignal = "LONG";
       newConfidence = 79;
       setOrderFlowScore(78);
@@ -78,10 +109,18 @@ setSmartMoneyRead("Accumulation");
         "ETH momentum improving",
         "Buyer pressure holding structure",
         "Risk-on crypto conditions",
+        
       ];
+      
       flow = 63;
       liquidity = "Upside liquidity target";
+      
     } else if (price < 2050) {
+        setEntryZone("2,040 - 2,060");
+setStopLoss("2,120");
+setTakeProfit("1,950");
+setRiskReward("1 : 2.7");
+setTradeReason("Distribution + bearish order flow");
       newSignal = "SHORT";
       newConfidence = 73;
       setOrderFlowScore(28);
@@ -94,11 +133,24 @@ setSmartMoneyRead("Distribution");
       ];
       flow = 41;
       liquidity = "Liquidity below range";
+      
+     } 
+     else {
+  setEntryZone("-");
+  setStopLoss("-");
+  setTakeProfit("-");
+  setRiskReward("-");
+  setTradeReason("No institutional edge detected");
     }
   }
 
   if (market === "EUR/USD") {
     if (price > 1.17) {
+        setEntryZone("1.1680 - 1.1700");
+setStopLoss("1.1620");
+setTakeProfit("1.1800");
+setRiskReward("1 : 2.4");
+setTradeReason("EUR strength with bullish liquidity expansion");
       newSignal = "LONG";
       newConfidence = 71;
       setOrderFlowScore(78);
@@ -112,6 +164,11 @@ setSmartMoneyRead("Accumulation");
       flow = 59;
       liquidity = "Buy-side liquidity";
     } else if (price < 1.15) {
+        setEntryZone("1.1480 - 1.1500");
+setStopLoss("1.1560");
+setTakeProfit("1.1400");
+setRiskReward("1 : 2.0");
+setTradeReason("EUR weakness with downside liquidity target");
       newSignal = "SHORT";
       newConfidence = 70;
       setOrderFlowScore(28);
@@ -125,10 +182,21 @@ setSmartMoneyRead("Distribution");
       flow = 43;
       liquidity = "Sell-side liquidity";
     }
+    else {setEntryZone("-");
+setStopLoss("-");
+setTakeProfit("-");
+setRiskReward("-");
+setTradeReason("No institutional edge detected");
+  }
   }
 
   if (market === "GBP/USD") {
     if (price > 1.29) {
+        setEntryZone("1.2850 - 1.2900");
+setStopLoss("1.2780");
+setTakeProfit("1.3100");
+setRiskReward("1 : 2.8");
+setTradeReason("GBP breakout supported by institutional buying");
       newSignal = "LONG";
       newConfidence = 72;
       setOrderFlowScore(78);
@@ -142,6 +210,11 @@ setSmartMoneyRead("{smartMoneyRead}");
       flow = 60;
       liquidity = "Liquidity above range";
     } else if (price < 1.25) {
+        setEntryZone("1.2450 - 1.2500");
+setStopLoss("1.2580");
+setTakeProfit("1.2200");
+setRiskReward("1 : 2.3");
+setTradeReason("GBP weakness with bearish order flow");
       newSignal = "SHORT";
       newConfidence = 69;
       setOrderFlowScore(28);
@@ -155,10 +228,20 @@ setSmartMoneyRead("Distribution");
       flow = 44;
       liquidity = "Liquidity below range";
     }
+  } else {setEntryZone("-");
+setStopLoss("-");
+setTakeProfit("-");
+setRiskReward("-");
+setTradeReason("No institutional edge detected");
   }
 
   if (market === "XAU/USD") {
     if (price > 4500) {
+        setEntryZone("4,450 - 4,500");
+setStopLoss("4,380");
+setTakeProfit("4,700");
+setRiskReward("1 : 2.6");
+setTradeReason("Gold strength with safe-haven institutional demand");
       newSignal = "LONG";
       newConfidence = 77;
       setOrderFlowScore(78);
@@ -172,6 +255,11 @@ setSmartMoneyRead("Accumulation");
       flow = 64;
       liquidity = "Upside liquidity pool";
     } else if (price < 4300) {
+        setEntryZone("4,300 - 4,350");
+setStopLoss("4,420");
+setTakeProfit("4,100");
+setRiskReward("1 : 2.4");
+setTradeReason("Gold rejection from key resistance zone");
       newSignal = "SHORT";
       newConfidence = 74;
       setOrderFlowScore(28);
@@ -185,6 +273,11 @@ setSmartMoneyRead("Distribution");
       flow = 40;
       liquidity = "Downside liquidity pool";
     }
+  } else {setEntryZone("-");
+setStopLoss("-");
+setTakeProfit("-");
+setRiskReward("-");
+setTradeReason("No institutional edge detected");
   }
 
   setSignal(newSignal);
@@ -192,6 +285,14 @@ setSmartMoneyRead("Distribution");
   setSignalReasons(reasons);
   setOrderFlowScore(flow);
   setLiquidityRead(liquidity);
+
+  if (newSignal === "WAIT") {
+  setEntryZone("-");
+  setStopLoss("-");
+  setTakeProfit("-");
+  setRiskReward("-");
+  setTradeReason("No institutional edge detected");
+}
 }
 
   function selectMarket(symbol: string, market: string, priceText: string) {
@@ -202,6 +303,7 @@ setSmartMoneyRead("Distribution");
     const numberPrice = Number(priceText.replace(/,/g, ""));
     if (!Number.isNaN(numberPrice)) {
       updateSignalForMarket(market, numberPrice);
+      
     }
   }
 
@@ -479,7 +581,36 @@ setSmartMoneyRead("Distribution");
             </div>
           </div>
         </div>
+<div className="mt-6 bg-slate-900 border border-slate-800 rounded-3xl p-6">
+  <div className="text-slate-400 text-sm">AI Trade Setup</div>
 
+  <div className="mt-4 grid grid-cols-5 gap-6">
+    <div>
+      <div className="text-slate-500 text-xs">Entry Zone</div>
+      <div className="text-white mt-1">{entryZone}</div>
+    </div>
+
+    <div>
+      <div className="text-slate-500 text-xs">Stop Loss</div>
+      <div className="text-red-400 mt-1">{stopLoss}</div>
+    </div>
+
+    <div>
+      <div className="text-slate-500 text-xs">Take Profit</div>
+      <div className="text-emerald-400 mt-1">{takeProfit}</div>
+    </div>
+
+    <div>
+      <div className="text-slate-500 text-xs">Risk / Reward</div>
+      <div className="text-cyan-400 mt-1">{riskReward}</div>
+    </div>
+
+    <div>
+      <div className="text-slate-500 text-xs">Reason</div>
+      <div className="text-purple-400 mt-1">{tradeReason}</div>
+    </div>
+  </div>
+</div>
         <div className="mt-6 grid grid-cols-4 gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-slate-400 text-sm">CVD Bias</div>
