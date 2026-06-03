@@ -13,6 +13,7 @@ export default function TerminalPage() {
 
   const [signal, setSignal] = useState("WAIT");
   const [confidence, setConfidence] = useState(50);
+  const [marketState, setMarketState] = useState("NEUTRAL");
   const [signalReasons, setSignalReasons] = useState<string[]>([
   "Waiting for market confirmation",
 ]);
@@ -28,277 +29,190 @@ const [stopLoss, setStopLoss] = useState("-");
 const [takeProfit, setTakeProfit] = useState("-");
 const [riskReward, setRiskReward] = useState("-");
 const [tradeReason, setTradeReason] = useState("");
-  const [orderflowScore, setorderFlowScore] = useState(62);
-const [liquidityread, setLiquidityread] = useState("Above Highs");
-const [smartMoneyRead, setSmartMoneyRead] = useState("Accumulation");
-
+const [smartMoneyRead, setSmartMoneyRead] = useState("{smartMoneyRead}");
+const [priceHistory, setPriceHistory] = useState<number[]>([]);
+const [signalHistory, setSignalHistory] = useState<
+  { market: string; signal: string; confidence: number; time: string }[]
+>([]);
   const router = useRouter();
+const [signalGrade, setSignalGrade] = useState("NO TRADE");
+const [scanner, setScanner] = useState([
+  { market: "BTC/USD", signal: "WAIT", grade: "NO TRADE" },
+  { market: "ETH/USD", signal: "WAIT", grade: "NO TRADE" },
+  { market: "EUR/USD", signal: "WAIT", grade: "NO TRADE" },
+  { market: "GBP/USD", signal: "WAIT", grade: "NO TRADE" },
+  { market: "XAU/USD", signal: "WAIT", grade: "NO TRADE" },
+]);
 
+
+function addSignalToHistory(newSignal: string, newConfidence: number) {
+  if (newSignal === "WAIT") return;
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  setSignalHistory((prev) => [
+    {
+      market: selectedMarket,
+      signal: newSignal,
+      confidence: newConfidence,
+      time,
+    },
+    ...prev.slice(0, 5),
+  ]);
+}
+function gradeSignal(signalType: string, signalConfidence: number) {
+  let grade = "NO TRADE";
+
+  if (signalType !== "WAIT") {
+    if (signalConfidence >= 90) {
+      grade = "A+ Setup";
+    } else if (signalConfidence >= 80) {
+      grade = "A Setup";
+    } else if (signalConfidence >= 70) {
+      grade = "B Setup";
+    }
+  }
+
+  setSignalGrade(grade);
+  updateScanner(selectedMarket, signalType, grade);
+}
+function updateScanner(market: string, newSignal: string, grade: string) {
+  setScanner((prev) =>
+    prev.map((item) =>
+      item.market === market
+        ? { ...item, signal: newSignal, grade }
+        : item
+    )
+  );
+}
   function updateSignalForMarket(market: string, price: number) {
-  let newSignal = "WAIT";
-  let newConfidence = 55;
-  let reasons = ["No clear institutional edge"];
-  let Flow = 50;
-  let liquidity = "Neutral";let flow = 50;
-let Liquidity = "Neutral";
+  setPriceHistory((prev) => {
+    const updated = [...prev, price].slice(-10);
 
-  if (market === "BTC/USD") {
-    if (price > 78000) {
-      newSignal = "LONG";
-      setEntryZone("77,800 - 78,000");
-setStopLoss("76,800");
-setTakeProfit("80,500");
-setRiskReward("1 : 3.1");
-setTradeReason("Liquidity sweep + institutional accumulation");
-      newConfidence = 84;
-      setOrderFlowScore(78);
-setLiquidityRead("Above Highs");
-setSmartMoneyRead("Accumulation");
-      reasons = [
-        "Price trading above key bullish threshold",
-        "Momentum aligned with buyers",
-        "Institutional accumulation bias",
-      ];
-      flow = 68;
-      liquidity = "Liquidity {liquidityRead}";
-    } else if (price < 76000) {
-      newSignal = "SHORT";
-      setEntryZone("75,900 - 76,100");
-setStopLoss("76,800");
-setTakeProfit("73,500");
-setRiskReward("1 : 2.8");
-setTradeReason("Distribution + bearish order flow");
-      newConfidence = 76;
-      setOrderFlowScore(28);
-setLiquidityRead("Below Lows");
-setSmartMoneyRead("Distribution");
-      reasons = [
-        "Price rejected below support threshold",
-        "Seller pressure increasing",
-        "Potential distribution phase",
-      ];
-      flow = 38;
-      liquidity = "Liquidity below lows";
-      
+    if (updated.length < 6) {
+      setSignal("WAIT");
+      setConfidence(50);
+      setSignalReasons(["Collecting live tick data"]);
+      setEntryZone("-");
+      setStopLoss("-");
+      setTakeProfit("-");
+      setRiskReward("-");
+      setTradeReason("Waiting for enough live market movement");
+      setOrderFlowScore(50);
+      setLiquidityRead("Neutral");
+      setSmartMoneyRead("Neutral");
+      return updated;
     }
-  }
-else {
-  setEntryZone("-");
-  setStopLoss("-");
-  setTakeProfit("-");
-  setRiskReward("-");
-  setTradeReason("No institutional edge detected");
-  
 
-  newSignal = "WAIT";
-  newConfidence = 55;
-}
-  if (market === "ETH/USD") {
-    if (price > 2200) {
-        setEntryZone("2,180 - 2,200");
-setStopLoss("2,130");
-setTakeProfit("2,350");
-setRiskReward("1 : 3.0");
-setTradeReason("Bullish momentum + institutional accumulation");
-      newSignal = "LONG";
-      newConfidence = 79;
-      setOrderFlowScore(78);
-setLiquidityRead("Above Highs");
-setSmartMoneyRead("Accumulation");
-      reasons = [
-        "ETH momentum improving",
-        "Buyer pressure holding structure",
-        "Risk-on crypto conditions",
-        
-      ];
-      
-      flow = 63;
-      liquidity = "Upside liquidity target";
-      
-    } else if (price < 2050) {
-        setEntryZone("2,040 - 2,060");
-setStopLoss("2,120");
-setTakeProfit("1,950");
-setRiskReward("1 : 2.7");
-setTradeReason("Distribution + bearish order flow");
-      newSignal = "SHORT";
-      newConfidence = 73;
-      setOrderFlowScore(28);
-setLiquidityRead("Below Lows");
-setSmartMoneyRead("Distribution");
-      reasons = [
-        "ETH below bearish threshold",
-        "Momentum fading",
-        "Downside liquidity risk",
-      ];
-      flow = 41;
-      liquidity = "Liquidity below range";
-      
-     } 
-     else {
-  setEntryZone("-");
-  setStopLoss("-");
-  setTakeProfit("-");
-  setRiskReward("-");
-  setTradeReason("No institutional edge detected");
+    let upTicks = 0;
+    let downTicks = 0;
+
+    for (let i = 1; i < updated.length; i++) {
+      if (updated[i] > updated[i - 1]) upTicks++;
+      if (updated[i] < updated[i - 1]) downTicks++;
     }
-  }
 
-  if (market === "EUR/USD") {
-    if (price > 1.17) {
-        setEntryZone("1.1680 - 1.1700");
-setStopLoss("1.1620");
-setTakeProfit("1.1800");
-setRiskReward("1 : 2.4");
-setTradeReason("EUR strength with bullish liquidity expansion");
-      newSignal = "LONG";
-      newConfidence = 71;
-      setOrderFlowScore(78);
-setLiquidityRead("Above Highs");
-setSmartMoneyRead("Accumulation");
-      reasons = [
-        "EUR strength above macro threshold",
-        "Dollar weakness implied",
-        "Trend bias turning bullish",
-      ];
-      flow = 59;
-      liquidity = "Buy-side liquidity";
-    } else if (price < 1.15) {
-        setEntryZone("1.1480 - 1.1500");
-setStopLoss("1.1560");
-setTakeProfit("1.1400");
-setRiskReward("1 : 2.0");
-setTradeReason("EUR weakness with downside liquidity target");
-      newSignal = "SHORT";
-      newConfidence = 70;
-      setOrderFlowScore(28);
-setLiquidityRead("Below Lows");
-setSmartMoneyRead("Distribution");
-      reasons = [
-        "EUR below support threshold",
-        "Dollar strength pressure",
-        "Bearish continuation risk",
-      ];
-      flow = 43;
-      liquidity = "Sell-side liquidity";
+    const first = updated[0];
+    const last = updated[updated.length - 1];
+    const movePercent = ((last - first) / first) * 100;
+
+    const bullishPressure = upTicks >= 6 && movePercent > 0.005;
+    const bearishPressure = downTicks >= 6 && movePercent < -0.005;
+
+    if (bullishPressure) {
+      const sl = price * 0.998;
+      const tp = price * 1.004;
+
+      setSignal("LONG");
+      setConfidence(Math.min(95, 70 + upTicks * 3));
+      addSignalToHistory("LONG", Math.min(95, 70 + upTicks * 3));
+      const longConfidence = Math.min(95, 70 + upTicks * 3);
+setConfidence(longConfidence);
+gradeSignal("LONG", longConfidence);
+      setSignalReasons([
+        "Fast bullish tick pressure detected",
+        "Recent price movement confirms upside momentum",
+        "Scalper mode: buyers currently controlling micro-trend",
+      ]);
+      setOrderFlowScore(70 + upTicks * 3);
+      setLiquidityRead("Buy-side momentum");
+      setSmartMoneyRead("Accumulation");
+      setMarketState("STRONG BULLISH");
+      setEntryZone(`${price.toFixed(2)} - ${(price * 1.001).toFixed(2)}`);
+      setStopLoss(sl.toFixed(2));
+      setTakeProfit(tp.toFixed(2));
+      setRiskReward("1 : 2.0");
+      setTradeReason("Live tick momentum shows aggressive buying pressure");
+    } else if (bearishPressure) {
+      const sl = price * 1.002;
+      const tp = price * 0.996;
+
+      setSignal("SHORT");
+      setConfidence(Math.min(95, 70 + downTicks * 3));
+      addSignalToHistory("SHORT", Math.min(95, 70 + downTicks * 3));
+      const shortConfidence = Math.min(95, 70 + downTicks * 3);
+setConfidence(shortConfidence);
+gradeSignal("SHORT", shortConfidence);
+      setSignalReasons([
+        "Fast bearish tick pressure detected",
+        "Recent price movement confirms downside momentum",
+        "Scalper mode: sellers currently controlling micro-trend",
+      ]);
+      setOrderFlowScore(100 - (70 + downTicks * 3));
+      setLiquidityRead("Sell-side momentum");
+      setSmartMoneyRead("Distribution");
+      setMarketState("STRONG BEARISH");
+
+      setEntryZone(`${(price * 0.999).toFixed(2)} - ${price.toFixed(2)}`);
+      setStopLoss(sl.toFixed(2));
+      setTakeProfit(tp.toFixed(2));
+      setRiskReward("1 : 2.0");
+      setTradeReason("Live tick momentum shows aggressive selling pressure");
+        } else {
+  if (signal === "LONG" || signal === "SHORT") {
+    setSignal(signal);
+    setConfidence(Math.max(confidence - 2, 55));
+    setSignalReasons([
+      "Momentum cooling but signal still active",
+      "Waiting for confirmation or invalidation",
+      "Scalper mode holding last valid setup",
+    ]);
+    return updated;
     }
-    else {setEntryZone("-");
-setStopLoss("-");
-setTakeProfit("-");
-setRiskReward("-");
-setTradeReason("No institutional edge detected");
-  }
-  }
 
-  if (market === "GBP/USD") {
-    if (price > 1.29) {
-        setEntryZone("1.2850 - 1.2900");
-setStopLoss("1.2780");
-setTakeProfit("1.3100");
-setRiskReward("1 : 2.8");
-setTradeReason("GBP breakout supported by institutional buying");
-      newSignal = "LONG";
-      newConfidence = 72;
-      setOrderFlowScore(78);
-setLiquidityRead("Above Highs");
-setSmartMoneyRead("{smartMoneyRead}");
-      reasons = [
-        "GBP strength confirmed",
-        "Momentum above key level",
-        "Buy-side continuation bias",
-      ];
-      flow = 60;
-      liquidity = "Liquidity above range";
-    } else if (price < 1.25) {
-        setEntryZone("1.2450 - 1.2500");
-setStopLoss("1.2580");
-setTakeProfit("1.2200");
-setRiskReward("1 : 2.3");
-setTradeReason("GBP weakness with bearish order flow");
-      newSignal = "SHORT";
-      newConfidence = 69;
-      setOrderFlowScore(28);
-setLiquidityRead("Below Lows");
-setSmartMoneyRead("Distribution");
-      reasons = [
-        "GBP weakness confirmed",
-        "Price below key level",
-        "Downside continuation risk",
-      ];
-      flow = 44;
-      liquidity = "Liquidity below range";
+  setSignal("WAIT");
+  setConfidence(52);
+  gradeSignal("WAIT", 52);
+      setSignalReasons([
+        "Mixed tick direction",
+        "No clean scalping momentum",
+        "Avoiding low-quality entry",
+      ]);
+      setOrderFlowScore(50);
+      setLiquidityRead("Range Bound");
+      setSmartMoneyRead("Neutral");
+      setMarketState("NEUTRAL / CHOPPY");
+
+      setEntryZone("-");
+      setStopLoss("-");
+      setTakeProfit("-");
+      setRiskReward("-");
+      setTradeReason("No clean scalper entry detected");
     }
-  } else {setEntryZone("-");
-setStopLoss("-");
-setTakeProfit("-");
-setRiskReward("-");
-setTradeReason("No institutional edge detected");
-  }
 
-  if (market === "XAU/USD") {
-    if (price > 4500) {
-        setEntryZone("4,450 - 4,500");
-setStopLoss("4,380");
-setTakeProfit("4,700");
-setRiskReward("1 : 2.6");
-setTradeReason("Gold strength with safe-haven institutional demand");
-      newSignal = "LONG";
-      newConfidence = 77;
-      setOrderFlowScore(78);
-setLiquidityRead("Above Highs");
-setSmartMoneyRead("Accumulation");
-      reasons = [
-        "Gold proxy showing bullish pressure",
-        "Safe-haven demand bias",
-        "Momentum above threshold",
-      ];
-      flow = 64;
-      liquidity = "Upside liquidity pool";
-    } else if (price < 4300) {
-        setEntryZone("4,300 - 4,350");
-setStopLoss("4,420");
-setTakeProfit("4,100");
-setRiskReward("1 : 2.4");
-setTradeReason("Gold rejection from key resistance zone");
-      newSignal = "SHORT";
-      newConfidence = 74;
-      setOrderFlowScore(28);
-setLiquidityRead("Below Lows");
-setSmartMoneyRead("Distribution");
-      reasons = [
-        "Gold proxy below bearish threshold",
-        "Seller imbalance forming",
-        "Potential liquidation sweep",
-      ];
-      flow = 40;
-      liquidity = "Downside liquidity pool";
-    }
-  } else {setEntryZone("-");
-setStopLoss("-");
-setTakeProfit("-");
-setRiskReward("-");
-setTradeReason("No institutional edge detected");
-  }
+    return updated;
+  });
 
-  setSignal(newSignal);
-  setConfidence(newConfidence);
-  setSignalReasons(reasons);
-  setOrderFlowScore(flow);
-  setLiquidityRead(liquidity);
-
-  if (newSignal === "WAIT") {
-  setEntryZone("-");
-  setStopLoss("-");
-  setTakeProfit("-");
-  setRiskReward("-");
-  setTradeReason("No institutional edge detected");
-}
 }
 
   function selectMarket(symbol: string, market: string, priceText: string) {
     setChartSymbol(symbol);
     setSelectedMarket(market);
     setSelectedPrice(priceText);
+    setPriceHistory([]);
 
     const numberPrice = Number(priceText.replace(/,/g, ""));
     if (!Number.isNaN(numberPrice)) {
@@ -414,7 +328,12 @@ setTradeReason("No institutional edge detected");
           <div className="text-slate-400 px-4 py-3">Signals</div>
           <div className="text-slate-400 px-4 py-3">Bots</div>
           <div className="text-slate-400 px-4 py-3">Performance</div>
-          <div className="text-slate-400 px-4 py-3">Journal</div>
+          <a
+  href="#journal"
+  className="block text-slate-400 px-4 py-3 hover:text-cyan-400"
+>
+  Journal
+</a>
 
           <button
             onClick={async () => {
@@ -494,7 +413,32 @@ setTradeReason("No institutional edge detected");
   <div className="text-slate-400 mt-2">
     Confidence: {confidence}%
   </div>
+<div className="mt-4">
+  <div className="flex justify-between text-xs text-slate-500 mb-1">
+    <span>Signal Strength</span>
+    <span>{confidence}%</span>
+  </div>
 
+  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+    <div
+      className={`h-full ${
+        signal === "LONG"
+          ? "bg-emerald-400"
+          : signal === "SHORT"
+          ? "bg-red-400"
+          : "bg-cyan-400"
+      }`}
+      style={{ width: `${confidence}%` }}
+    />
+  </div>
+
+  <div className="text-xs text-slate-400 mt-2">
+    Market State: <span className="text-white">{marketState}</span>
+  </div>
+  <div className="text-xs text-slate-400 mt-2">
+  Grade: <span className="text-purple-400">{signalGrade}</span>
+</div>
+</div>
   <div className="mt-4 space-y-1 text-xs text-slate-400">
     {signalReasons.map((reason) => (
       <div key={reason}>
@@ -611,6 +555,156 @@ setTradeReason("No institutional edge detected");
     </div>
   </div>
 </div>
+<div className="mt-6 grid grid-cols-2 gap-6">
+  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+    <div className="text-slate-400 text-sm mb-4">Recent Signals</div>
+
+    <div className="space-y-3 text-sm">
+      {signalHistory.length === 0 ? (
+        <div className="text-slate-500">No signals yet</div>
+      ) : (
+        signalHistory.map((item, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between border-b border-slate-800 pb-2"
+          >
+            <span className="text-slate-400">{item.time}</span>
+            <span>{item.market}</span>
+            <span
+              className={
+                item.signal === "LONG" ? "text-emerald-400" : "text-red-400"
+              }
+            >
+              {item.signal}
+            </span>
+            <span className="text-cyan-400">{item.confidence}%</span>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+
+  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+    <div className="text-slate-400 text-sm mb-4">Market Scanner</div>
+
+    <div className="space-y-3 text-sm">
+      {scanner.map((item) => (
+        <button
+          key={item.market}
+          onClick={() => {
+            if (item.market === "BTC/USD") selectMarket("BINANCE:BTCUSDT", "BTC/USD", btcPrice);
+            if (item.market === "ETH/USD") selectMarket("BINANCE:ETHUSDT", "ETH/USD", ethPrice);
+            if (item.market === "EUR/USD") selectMarket("FX:EURUSD", "EUR/USD", eurUsd);
+            if (item.market === "GBP/USD") selectMarket("FX:GBPUSD", "GBP/USD", gbpUsd);
+            if (item.market === "XAU/USD") selectMarket("OANDA:XAUUSD", "XAU/USD", xauUsd);
+          }}
+          className="flex items-center justify-between w-full border-b border-slate-800 pb-2 hover:text-cyan-400"
+        >
+          <span>{item.market}</span>
+          <span
+            className={
+              item.signal === "LONG"
+                ? "text-emerald-400"
+                : item.signal === "SHORT"
+                ? "text-red-400"
+                : "text-slate-500"
+            }
+          >
+            {item.signal}
+          </span>
+          <span className="text-purple-400">{item.grade}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
+<div className="mt-6 grid grid-cols-3 gap-6">
+  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+    <div className="text-slate-400 text-sm mb-4">Economic Calendar</div>
+    <div className="space-y-3 text-sm">
+      <div className="flex justify-between">
+        <span>US CPI</span>
+        <span className="text-red-400">High Impact</span>
+      </div>
+      <div className="flex justify-between">
+        <span>FOMC Minutes</span>
+        <span className="text-red-400">High Impact</span>
+      </div>
+      <div className="flex justify-between">
+        <span>UK GDP</span>
+        <span className="text-yellow-400">Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+    <div className="text-slate-400 text-sm mb-4">Market News</div>
+    <div className="space-y-3 text-sm text-slate-300">
+      <div>Crypto volatility increases ahead of US data.</div>
+      <div>Gold remains sensitive to dollar strength.</div>
+      <div>Forex markets await central bank direction.</div>
+    </div>
+  </div>
+
+  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+    <div className="text-slate-400 text-sm mb-4">Performance</div>
+    <div className="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <div className="text-slate-500">Win Rate</div>
+        <div className="text-emerald-400 text-2xl">68%</div>
+      </div>
+      <div>
+        <div className="text-slate-500">Avg R:R</div>
+        <div className="text-cyan-400 text-2xl">1:2.4</div>
+      </div>
+      <div>
+        <div className="text-slate-500">Signals</div>
+        <div className="text-white text-2xl">{signalHistory.length}</div>
+      </div>
+      <div>
+        <div className="text-slate-500">Mode</div>
+        <div className="text-purple-400 text-2xl">Scalp</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  id="journal"
+  className="mt-6 bg-slate-900 border border-slate-800 rounded-3xl p-6"
+>
+  <div className="text-slate-400 text-sm mb-4">
+    Trading Journal
+  </div>
+  
+
+  <div className="space-y-3 text-sm">
+    {signalHistory.length === 0 ? (
+      <div className="text-slate-500">
+        No trades logged yet. Signals will appear here after entries.
+      </div>
+    ) : (
+      signalHistory.map((item, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-5 border-b border-slate-800 pb-2"
+        >
+          <span className="text-slate-400">{item.time}</span>
+          <span>{item.market}</span>
+          <span
+            className={
+              item.signal === "LONG" ? "text-emerald-400" : "text-red-400"
+            }
+          >
+            {item.signal}
+          </span>
+          <span className="text-cyan-400">{item.confidence}%</span>
+          <span className="text-purple-400">{signalGrade}</span>
+        </div>
+      ))
+    )}
+  </div>
+</div>
         <div className="mt-6 grid grid-cols-4 gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-slate-400 text-sm">CVD Bias</div>
@@ -672,3 +766,4 @@ setTradeReason("No institutional edge detected");
     </main>
   );
 }
+
