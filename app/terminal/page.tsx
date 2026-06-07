@@ -22,6 +22,7 @@ type SignalHistoryItem = {
   time: string;
 };
 
+
 type MarketResult = {
   signal: SignalType;
   confidence: number;
@@ -213,6 +214,8 @@ export default function TerminalPage() {
   const [priceHistories, setPriceHistories] = useState<Record<string, number[]>>({});
   const [signalHistory, setSignalHistory] = useState<SignalHistoryItem[]>([]);
   const [scanner, setScanner] = useState<ScannerItem[]>(INITIAL_SCANNER);
+  const [lastSignalKey, setLastSignalKey] = useState("");
+
 
   const router = useRouter();
 
@@ -245,8 +248,24 @@ export default function TerminalPage() {
   }
 
   function addSignalToHistory(market: MarketName, result: MarketResult) {
-    if (result.signal === "WAIT") return;
+     if (result.signal === "WAIT") return;
 
+  const hasValidSetup =
+    result.confidence >= 85 &&
+    result.grade !== "NO TRADE" &&
+    result.entryZone !== "-" &&
+    result.stopLoss !== "-" &&
+    result.takeProfit !== "-";
+
+  if (!hasValidSetup) return;
+
+  const signalKey = `${market}-${result.signal}-${result.entryZone}-${result.stopLoss}-${result.takeProfit}`;
+
+  const isDuplicate = signalKey === lastSignalKey;
+
+  if (isDuplicate) return;
+
+  setLastSignalKey(signalKey);
     const time = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
